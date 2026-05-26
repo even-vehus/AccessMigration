@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import os
 import re
 from collections import deque
 from datetime import date, datetime
@@ -99,6 +100,11 @@ def get_connection(db_path: Path):
 
 def get_adox_schema(db_path: Path) -> dict:
     """Use ADOX via win32com to get richer schema info (AutoNumber, PKs, FKs, field types)."""
+    # ADOX can hang on some Office/ACE installations. Skip it by default and
+    # allow opt-in when a machine has stable COM/OLEDB behavior.
+    if os.getenv("ACCESS_USE_ADOX", "0") != "1":
+        print("  ADOX skipped (set ACCESS_USE_ADOX=1 to enable)")
+        return {}
     if not HAS_WIN32COM:
         return {}
     schema = {}
