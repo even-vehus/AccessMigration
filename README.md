@@ -1,16 +1,106 @@
-# React + Vite
+# Northwind App
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React + Vite frontend with an ASP.NET Core 10 backend, plus a Python migration script that converts an Access Northwind `.accdb` file into SQL scripts for Microsoft Fabric SQL.
 
-Currently, two official plugins are available:
+## Goal
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+After cloning, a user should be able to:
 
-## React Compiler
+1. Place `Northwind.accdb` in the repository root.
+2. Generate migration SQL files.
+3. Run those SQL files in Fabric SQL.
+4. Start the API and frontend.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Prerequisites
 
-## Expanding the ESLint configuration
+- [.NET 10 SDK](https://dotnet.microsoft.com/)
+- [Node.js](https://nodejs.org/)
+- [Python 3.10+](https://www.python.org/)
+- Microsoft Access Database Engine / Access ODBC driver (`Microsoft Access Driver (*.mdb, *.accdb)`)
+- Azure CLI logged in (`az login`) with access to the Fabric SQL database
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## 1. Clone and install dependencies
+
+```bash
+git clone <your-repo-url>
+cd northwind-app
+npm install
+```
+
+For migration dependencies:
+
+```bash
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements-migration.txt
+```
+
+## 2. Add Access file and generate SQL migration output
+
+1. Copy your Access file to the repo root and name it `Northwind.accdb`.
+2. Run:
+
+```bash
+python migration\extract_access_db.py
+```
+
+Output is generated in `migration_output/`:
+
+- `01_create_tables.sql`
+- `02_foreign_keys.sql`
+- `03_indexes.sql`
+- `04_insert_data.sql`
+- `schema.json`
+- `schema_summary.md`
+
+## 3. Load generated SQL into Fabric SQL
+
+Run the generated SQL files in this order:
+
+1. `01_create_tables.sql`
+2. `04_insert_data.sql`
+3. `02_foreign_keys.sql`
+4. `03_indexes.sql`
+
+This creates and populates the Northwind schema in Fabric SQL.
+
+## 4. Configure and run backend
+
+Create `api/appsettings.Development.json`:
+
+```json
+{
+  "DB_SERVER": "<your-fabric-sql-server>",
+  "DB_PORT": "1433",
+  "DB_NAME": "<your-database-name>"
+}
+```
+
+Run backend (http://localhost:3001):
+
+```bash
+cd api
+dotnet run
+```
+
+## 5. Run frontend
+
+In a second terminal:
+
+```bash
+npm run dev
+```
+
+Frontend runs at http://localhost:5173 and calls API at http://localhost:3001.
+
+## Project structure
+
+```
+northwind-app/
+  migration/            # Access -> Fabric SQL extraction tooling
+  migration_output/     # Generated SQL/CSV/schema output (ignored in git)
+  api/                  # ASP.NET Core 10 Web API
+  src/                  # React frontend (Vite)
+  server/               # Legacy Node.js/Express backend (reference)
+```
+

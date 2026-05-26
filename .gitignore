@@ -16,6 +16,23 @@ dist-ssr
 server/.env
 .env
 
+# Local Access source files (user-provided)
+Northwind.accdb
+*.laccdb
+
+# Generated migration artifacts
+migration_output/
+
+# Python artifacts
+__pycache__/
+*.pyc
+.venv/
+
+# .NET build artifacts
+api/bin/
+api/obj/
+api/appsettings.Development.json
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
