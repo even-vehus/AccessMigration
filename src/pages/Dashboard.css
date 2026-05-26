@@ -1,0 +1,22 @@
+.stat-cards {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+.stat-card {
+  flex: 1;
+  min-width: 140px;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1.5rem;
+  text-align: center;
+  text-decoration: none;
+  color: inherit;
+  transition: box-shadow .15s;
+}
+.stat-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,.1); }
+.stat-count { font-size: 2.5rem; font-weight: 700; color: #1a73e8; }
+.stat-label { color: #555; margin-top: .25rem; }
+.recent-section h2 { margin-bottom: .75rem; }
