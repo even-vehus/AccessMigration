@@ -23,9 +23,11 @@ After cloning, a user should be able to:
 
 ```bash
 git clone <your-repo-url>
-cd northwind-app
+cd <cloned-repo-folder>
 npm install
 ```
+
+Example (for this repository name): `cd AccessMigration`
 
 For migration dependencies:
 
