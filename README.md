@@ -1,4 +1,4 @@
-# Northwind App
+# Access Migration
 
 React + Vite frontend with an ASP.NET Core backend for browsing and managing Northwind data stored in Fabric SQL.
 
