@@ -17,7 +17,7 @@ server/.env
 .env
 
 # Local Access source files (user-provided)
-Northwind.accdb
+access_databases/*.accdb
 *.laccdb
 
 # Generated migration artifacts
