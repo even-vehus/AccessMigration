@@ -25,50 +25,6 @@ try:
 except ImportError:
     HAS_WIN32COM = False
 
-# Access to T-SQL type mapping
-ACCESS_TO_TSQL = {
-    "TEXT": "NVARCHAR(255)",
-    "LONGTEXT": "NVARCHAR(MAX)",
-    "MEMO": "NVARCHAR(MAX)",
-    "BYTE": "TINYINT",
-    "INTEGER": "SMALLINT",
-    "LONG": "INT",
-    "SINGLE": "REAL",
-    "DOUBLE": "FLOAT",
-    "CURRENCY": "DECIMAL(19,4)",
-    "DATETIME": "DATETIME2",
-    "DATE": "DATE",
-    "TIME": "TIME",
-    "YESNO": "BIT",
-    "BOOLEAN": "BIT",
-    "COUNTER": "INT IDENTITY(1,1)",
-    "AUTONUMBER": "INT IDENTITY(1,1)",
-    "GUID": "UNIQUEIDENTIFIER",
-    "BINARY": "VARBINARY(MAX)",
-    "LONGBINARY": "VARBINARY(MAX)",
-    "DECIMAL": "DECIMAL(18,4)",
-    "NUMERIC": "DECIMAL(18,4)",
-    "CHAR": "NCHAR",
-    "NCHAR": "NCHAR",
-    "NVARCHAR": "NVARCHAR",
-    "VARCHAR": "NVARCHAR",
-    "SMALLINT": "SMALLINT",
-    "INT": "INT",
-    "BIGINT": "BIGINT",
-}
-
-# pyodbc type_code to T-SQL
-TYPECODE_TO_TSQL = {
-    str: "NVARCHAR(255)",
-    int: "INT",
-    float: "FLOAT",
-    bool: "BIT",
-    datetime: "DATETIME2",
-    date: "DATE",
-    bytes: "VARBINARY(MAX)",
-    Decimal: "DECIMAL(18,4)",
-}
-
 
 def parse_args() -> argparse.Namespace:
     script_dir = Path(__file__).resolve().parent
