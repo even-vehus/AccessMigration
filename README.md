@@ -1,4 +1,4 @@
-# Northwind App
+# Access Migration App
 
 React + Vite frontend with an ASP.NET Core 10 backend, plus a Python migration script that converts an Access Northwind `.accdb` file into SQL scripts for Microsoft Fabric SQL.
 
