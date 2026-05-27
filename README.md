@@ -6,7 +6,7 @@ React + Vite frontend with an ASP.NET Core 10 backend, plus a Python migration s
 
 After cloning, a user should be able to:
 
-1. Place `Northwind.accdb` in the repository root.
+1. Place one or more `.accdb` files in `access_databases/`.
 2. Generate migration SQL files.
 3. Run those SQL files in Fabric SQL.
 4. Start the API and frontend.
@@ -37,16 +37,29 @@ python -m venv .venv
 pip install -r requirements-migration.txt
 ```
 
-## 2. Add Access file and generate SQL migration output
+## 2. Add Access files and generate SQL migration output
 
-1. Copy your Access file to the repo root and name it `Northwind.accdb`.
+1. Copy Access files into `access_databases/`.
 2. Run:
 
 ```bash
 python migration\extract_access_db.py
 ```
 
-Output is generated in `migration_output/`:
+This defaults to `access_databases/Northwind.accdb`.
+For other files:
+
+```bash
+python migration\extract_access_db.py --db-name AnotherDatabase.accdb
+```
+
+Or use a full path override:
+
+```bash
+python migration\extract_access_db.py --db-path "C:\path\to\MyDatabase.accdb"
+```
+
+Output is generated in `migration_output/<database_name>/`:
 
 - `01_create_tables.sql`
 - `02_foreign_keys.sql`
@@ -100,7 +113,8 @@ Frontend runs at http://localhost:5173 and calls API at http://localhost:3001.
 ```
 northwind-app/
   migration/            # Access -> Fabric SQL extraction tooling
-  migration_output/     # Generated SQL/CSV/schema output (ignored in git)
+  access_databases/     # Local source .accdb files (ignored in git)
+  migration_output/     # Generated SQL/CSV/schema output per database (ignored in git)
   api/                  # ASP.NET Core 10 Web API
   src/                  # React frontend (Vite)
   server/               # Legacy Node.js/Express backend (reference)

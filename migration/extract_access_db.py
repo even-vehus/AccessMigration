@@ -29,19 +29,30 @@ except ImportError:
 def parse_args() -> argparse.Namespace:
     script_dir = Path(__file__).resolve().parent
     repo_root = script_dir.parent
+    default_access_dir = repo_root / "access_databases"
 
     parser = argparse.ArgumentParser(
         description="Extract Access (.accdb) and generate SQL/CSV files for Fabric SQL import."
     )
     parser.add_argument(
+        "--access-dir",
+        default=str(default_access_dir),
+        help="Directory containing Access databases (default: ./access_databases)",
+    )
+    parser.add_argument(
+        "--db-name",
+        default="Northwind.accdb",
+        help="Access file name inside --access-dir when --db-path is not provided",
+    )
+    parser.add_argument(
         "--db-path",
-        default=str(repo_root / "Northwind.accdb"),
-        help="Path to .accdb file (default: ./Northwind.accdb)",
+        default=None,
+        help="Full path to a .accdb file (overrides --access-dir and --db-name)",
     )
     parser.add_argument(
         "--output-dir",
-        default=str(repo_root / "migration_output"),
-        help="Output directory for generated files (default: ./migration_output)",
+        default=None,
+        help="Output directory for generated files (default: ./migration_output/<db_name_without_ext>)",
     )
     return parser.parse_args()
 
@@ -416,13 +427,27 @@ def export_table_csv(table_name: str, col_descs, rows, output_dir: Path):
 
 def main():
     args = parse_args()
-    db_path = Path(args.db_path).resolve()
-    output_dir = Path(args.output_dir).resolve()
+    script_dir = Path(__file__).resolve().parent
+    repo_root = script_dir.parent
+
+    access_dir = Path(args.access_dir).resolve()
+    access_dir.mkdir(parents=True, exist_ok=True)
+
+    if args.db_path:
+        db_path = Path(args.db_path).resolve()
+    else:
+        db_path = (access_dir / args.db_name).resolve()
+
+    if args.output_dir:
+        output_dir = Path(args.output_dir).resolve()
+    else:
+        output_dir = (repo_root / "migration_output" / db_path.stem).resolve()
 
     if not db_path.exists():
         raise FileNotFoundError(
             f"Access file not found: {db_path}\n"
-            "Copy Northwind.accdb into the repository root or pass --db-path explicitly."
+            f"Put your .accdb in: {access_dir}\n"
+            "or pass --db-path explicitly."
         )
 
     print(f"Connecting to: {db_path}")
