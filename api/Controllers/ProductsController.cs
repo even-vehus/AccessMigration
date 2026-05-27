@@ -33,17 +33,18 @@ public class ProductsController(SqlConnectionFactory db) : ControllerBase
     public async Task<IActionResult> Create([FromBody] ProductRequest body)
     {
         await using var conn = await db.CreateAsync();
+                var productId = await SqlHelper.NextIntIdAsync(conn, "Products", "ProductID");
         await using var cmd = new SqlCommand(@"
             INSERT INTO [Products]
-              ([ProductCode],[ProductName],[ProductDescription],[UnitPrice],[AddedBy],[AddedOn],[ModifiedBy],[ModifiedOn])
-            OUTPUT INSERTED.[ProductID]
-            VALUES (@ProductCode,@ProductName,@ProductDescription,@UnitPrice,'App',GETDATE(),'App',GETDATE())", conn);
+                            ([ProductID],[ProductCode],[ProductName],[ProductDescription],[UnitPrice],[AddedBy],[AddedOn],[ModifiedBy],[ModifiedOn])
+                        VALUES (@ProductID,@ProductCode,@ProductName,@ProductDescription,@UnitPrice,'App',GETDATE(),'App',GETDATE())", conn);
+                cmd.Parameters.AddWithValue("@ProductID", productId);
         cmd.Parameters.AddParam("@ProductCode", body.ProductCode);
         cmd.Parameters.AddParam("@ProductName", body.ProductName);
         cmd.Parameters.AddParam("@ProductDescription", body.ProductDescription);
         cmd.Parameters.AddParam("@UnitPrice", body.UnitPrice);
-        var newId = await cmd.ExecuteScalarAsync();
-        return StatusCode(201, new { ProductID = newId });
+                await cmd.ExecuteNonQueryAsync();
+                return StatusCode(201, new { ProductID = productId });
     }
 
     [HttpPut("{id:int}")]

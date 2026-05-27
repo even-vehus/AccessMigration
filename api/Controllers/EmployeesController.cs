@@ -33,16 +33,17 @@ public class EmployeesController(SqlConnectionFactory db) : ControllerBase
     public async Task<IActionResult> Create([FromBody] EmployeeRequest body)
     {
         await using var conn = await db.CreateAsync();
+        var employeeId = await SqlHelper.NextIntIdAsync(conn, "Employees", "EmployeeID");
         await using var cmd = new SqlCommand(@"
             INSERT INTO [Employees]
-              ([FirstName],[LastName],[EmailAddress],[JobTitle],[PrimaryPhone],[SecondaryPhone],[Title],[Notes],
+              ([EmployeeID],[FirstName],[LastName],[FullNameFNLN],[FullNameLNFN],[EmailAddress],[JobTitle],[PrimaryPhone],[SecondaryPhone],[Title],[Notes],
                [AddedBy],[AddedOn],[ModifiedBy],[ModifiedOn])
-            OUTPUT INSERTED.[EmployeeID]
-            VALUES (@FirstName,@LastName,@EmailAddress,@JobTitle,@PrimaryPhone,@SecondaryPhone,@Title,@Notes,
+            VALUES (@EmployeeID,@FirstName,@LastName,@FullNameFNLN,@FullNameLNFN,@EmailAddress,@JobTitle,@PrimaryPhone,@SecondaryPhone,@Title,@Notes,
                'App',GETDATE(),'App',GETDATE())", conn);
+        cmd.Parameters.AddWithValue("@EmployeeID", employeeId);
         AddParams(cmd, body);
-        var newId = await cmd.ExecuteScalarAsync();
-        return StatusCode(201, new { EmployeeID = newId });
+        await cmd.ExecuteNonQueryAsync();
+        return StatusCode(201, new { EmployeeID = employeeId });
     }
 
     [HttpPut("{id:int}")]
@@ -75,12 +76,36 @@ public class EmployeesController(SqlConnectionFactory db) : ControllerBase
     {
         cmd.Parameters.AddParam("@FirstName", body.FirstName);
         cmd.Parameters.AddParam("@LastName", body.LastName);
+        cmd.Parameters.AddParam("@FullNameFNLN", BuildFullNameFnLn(body.FirstName, body.LastName));
+        cmd.Parameters.AddParam("@FullNameLNFN", BuildFullNameLnFn(body.FirstName, body.LastName));
         cmd.Parameters.AddParam("@EmailAddress", body.EmailAddress);
         cmd.Parameters.AddParam("@JobTitle", body.JobTitle);
         cmd.Parameters.AddParam("@PrimaryPhone", body.PrimaryPhone);
         cmd.Parameters.AddParam("@SecondaryPhone", body.SecondaryPhone);
         cmd.Parameters.AddParam("@Title", body.Title);
         cmd.Parameters.AddParam("@Notes", body.Notes);
+    }
+
+    private static string? BuildFullNameFnLn(string? firstName, string? lastName)
+        => BuildFullName(firstName, lastName);
+
+    private static string? BuildFullNameLnFn(string? firstName, string? lastName)
+    {
+        if (string.IsNullOrWhiteSpace(lastName) && string.IsNullOrWhiteSpace(firstName))
+            return null;
+        if (string.IsNullOrWhiteSpace(lastName))
+            return firstName?.Trim();
+        if (string.IsNullOrWhiteSpace(firstName))
+            return lastName?.Trim();
+        return $"{lastName.Trim()}, {firstName.Trim()}";
+    }
+
+    private static string? BuildFullName(string? firstName, string? lastName)
+    {
+        var parts = new[] { firstName?.Trim(), lastName?.Trim() }
+            .Where(part => !string.IsNullOrWhiteSpace(part));
+        var fullName = string.Join(" ", parts);
+        return string.IsNullOrWhiteSpace(fullName) ? null : fullName;
     }
 }
 

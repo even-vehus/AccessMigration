@@ -57,16 +57,17 @@ public class OrdersController(SqlConnectionFactory db) : ControllerBase
     public async Task<IActionResult> Create([FromBody] OrderRequest body)
     {
         await using var conn = await db.CreateAsync();
+        var orderId = await SqlHelper.NextIntIdAsync(conn, "Orders", "OrderID");
 
         await using var orderCmd = new SqlCommand(@"
             INSERT INTO [Orders]
-              ([EmployeeID],[CustomerID],[OrderDate],[ShippedDate],[PaidDate],[Notes],[StatusID],
+              ([OrderID],[EmployeeID],[CustomerID],[OrderDate],[ShippedDate],[PaidDate],[Notes],[StatusID],
                [AddedBy],[AddedOn],[ModifiedBy],[ModifiedOn])
-            OUTPUT INSERTED.[OrderID]
-            VALUES (@EmployeeID,@CustomerID,@OrderDate,@ShippedDate,@PaidDate,@Notes,@StatusID,
+            VALUES (@OrderID,@EmployeeID,@CustomerID,@OrderDate,@ShippedDate,@PaidDate,@Notes,@StatusID,
                'App',GETDATE(),'App',GETDATE())", conn);
+        orderCmd.Parameters.AddWithValue("@OrderID", orderId);
         AddOrderParams(orderCmd, body);
-        var orderId = (int)(await orderCmd.ExecuteScalarAsync())!;
+        await orderCmd.ExecuteNonQueryAsync();
 
         if (body.Details is { Count: > 0 })
             await InsertDetails(conn, orderId, body.Details);
@@ -133,10 +134,12 @@ public class OrdersController(SqlConnectionFactory db) : ControllerBase
     {
         foreach (var d in details)
         {
+            var orderDetailId = await SqlHelper.NextIntIdAsync(conn, "OrderDetails", "OrderDetailID");
             await using var cmd = new SqlCommand(@"
                 INSERT INTO [OrderDetails]
-                  ([OrderID],[ProductID],[Quantity],[UnitPrice],[AddedBy],[AddedOn],[ModifiedBy],[ModifiedOn])
-                VALUES (@OrderID,@ProductID,@Quantity,@UnitPrice,'App',GETDATE(),'App',GETDATE())", conn);
+                  ([OrderDetailID],[OrderID],[ProductID],[Quantity],[UnitPrice],[AddedBy],[AddedOn],[ModifiedBy],[ModifiedOn])
+                VALUES (@OrderDetailID,@OrderID,@ProductID,@Quantity,@UnitPrice,'App',GETDATE(),'App',GETDATE())", conn);
+            cmd.Parameters.AddWithValue("@OrderDetailID", orderDetailId);
             cmd.Parameters.AddWithValue("@OrderID", orderId);
             cmd.Parameters.AddParam("@ProductID", d.ProductID);
             cmd.Parameters.AddParam("@Quantity", d.Quantity);

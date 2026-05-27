@@ -33,18 +33,19 @@ public class CustomersController(SqlConnectionFactory db) : ControllerBase
     public async Task<IActionResult> Create([FromBody] CustomerRequest body)
     {
         await using var conn = await db.CreateAsync();
+        var customerId = await SqlHelper.NextIntIdAsync(conn, "Customers", "CustomerID");
         await using var cmd = new SqlCommand(@"
             INSERT INTO [Customers]
-              ([CustomerName],[PrimaryContactLastName],[PrimaryContactFirstName],[PrimaryContactJobTitle],
+              ([CustomerID],[CustomerName],[PrimaryContactLastName],[PrimaryContactFirstName],[PrimaryContactJobTitle],
                [PrimaryContactEmailAddress],[BusinessPhone],[Address],[City],[State],[Zip],[Website],[Notes],
                [AddedBy],[AddedOn],[ModifiedBy],[ModifiedOn])
-            OUTPUT INSERTED.[CustomerID]
-            VALUES (@CustomerName,@PrimaryContactLastName,@PrimaryContactFirstName,@PrimaryContactJobTitle,
+            VALUES (@CustomerID,@CustomerName,@PrimaryContactLastName,@PrimaryContactFirstName,@PrimaryContactJobTitle,
                @PrimaryContactEmailAddress,@BusinessPhone,@Address,@City,@State,@Zip,@Website,@Notes,
                'App',GETDATE(),'App',GETDATE())", conn);
+        cmd.Parameters.AddWithValue("@CustomerID", customerId);
         AddParams(cmd, body);
-        var newId = await cmd.ExecuteScalarAsync();
-        return StatusCode(201, new { CustomerID = newId });
+        await cmd.ExecuteNonQueryAsync();
+        return StatusCode(201, new { CustomerID = customerId });
     }
 
     [HttpPut("{id:int}")]

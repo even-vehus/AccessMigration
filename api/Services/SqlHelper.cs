@@ -4,6 +4,17 @@ namespace NorthwindApi.Services;
 
 public static class SqlHelper
 {
+    public static async Task<int> NextIntIdAsync(
+        SqlConnection conn,
+        string tableName,
+        string idColumn,
+        SqlTransaction? transaction = null)
+    {
+        var sql = $"SELECT ISNULL(MAX([{idColumn}]), 0) + 1 FROM [{tableName}] WITH (UPDLOCK, HOLDLOCK)";
+        await using var cmd = new SqlCommand(sql, conn, transaction);
+        return (int)(await cmd.ExecuteScalarAsync())!;
+    }
+
     public static async Task<List<Dictionary<string, object?>>> ReadRowsAsync(SqlDataReader reader)
     {
         var results = new List<Dictionary<string, object?>>();
