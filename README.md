@@ -11,6 +11,54 @@ After cloning, a user should be able to:
 3. Run those SQL files in Fabric SQL.
 4. Start the API and frontend.
 
+## Quick Start
+
+Use this if you already have the repo open in VS Code and want the exact run order.
+
+1. Open a PowerShell terminal in the repository root.
+2. Activate the Python environment:
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
+
+3. Generate the migration output, if needed:
+
+```powershell
+cd .\northwind-app
+python .\migration\extract_access_db.py
+```
+
+4. Apply the generated SQL to Fabric SQL with `sqlcmd` using your own Fabric server and database values.
+  Use the placeholders below, not literal hardcoded values:
+
+```powershell
+sqlcmd -S "<your-fabric-sql-server>,<port>" -d "<your-database-name>" --authentication-method ActiveDirectoryInteractive -N true -Q "SELECT DB_NAME()"
+```
+
+```powershell
+sqlcmd -S "<your-fabric-sql-server>,<port>" -d "<your-database-name>" --authentication-method ActiveDirectoryInteractive -N true -i ".\migration_output\<database_name>\01_create_tables.sql"
+sqlcmd -S "<your-fabric-sql-server>,<port>" -d "<your-database-name>" --authentication-method ActiveDirectoryInteractive -N true -i ".\migration_output\<database_name>\04_insert_data.sql"
+sqlcmd -S "<your-fabric-sql-server>,<port>" -d "<your-database-name>" --authentication-method ActiveDirectoryInteractive -N true -i ".\migration_output\<database_name>\02_foreign_keys.sql"
+sqlcmd -S "<your-fabric-sql-server>,<port>" -d "<your-database-name>" --authentication-method ActiveDirectoryInteractive -N true -i ".\migration_output\<database_name>\03_indexes.sql"
+```
+
+5. Start the API:
+
+```powershell
+cd .\api
+dotnet run
+```
+
+6. Start the frontend in a second terminal:
+
+```powershell
+cd .\northwind-app
+npm run dev
+```
+
+7. Open the app at `http://localhost:5173`.
+
 ## Prerequisites
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/)
@@ -124,6 +172,8 @@ Run backend (http://localhost:3001):
 cd api
 dotnet run
 ```
+
+If you use the quick start above, you can skip straight to the commands there.
 
 ## 5. Run frontend
 
