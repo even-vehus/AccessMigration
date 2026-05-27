@@ -16,13 +16,6 @@ dist-ssr
 server/.env
 .env
 
-# Local Access source files (user-provided)
-access_databases/*.accdb
-*.laccdb
-
-# Generated migration artifacts
-migration_output/
-
 # Python artifacts
 __pycache__/
 *.pyc
