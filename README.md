@@ -79,6 +79,33 @@ Run the generated SQL files in this order:
 
 This creates and populates the Northwind schema in Fabric SQL.
 
+You can run the generated SQL from the VS Code terminal with `sqlcmd`.
+Use your Fabric SQL server and database values, for example from `api/appsettings.Development.json`.
+
+Connection test:
+
+```powershell
+sqlcmd -S "<your-fabric-sql-server>,<port>" -d "<your-database-name>" --authentication-method ActiveDirectoryInteractive -N true -Q "SELECT DB_NAME()"
+```
+
+Run the scripts in order:
+
+```powershell
+sqlcmd -S "<your-fabric-sql-server>,<port>" -d "<your-database-name>" --authentication-method ActiveDirectoryInteractive -N true -i ".\migration_output\<database_name>\01_create_tables.sql"
+
+sqlcmd -S "<your-fabric-sql-server>,<port>" -d "<your-database-name>" --authentication-method ActiveDirectoryInteractive -N true -i ".\migration_output\<database_name>\04_insert_data.sql"
+
+sqlcmd -S "<your-fabric-sql-server>,<port>" -d "<your-database-name>" --authentication-method ActiveDirectoryInteractive -N true -i ".\migration_output\<database_name>\02_foreign_keys.sql"
+
+sqlcmd -S "<your-fabric-sql-server>,<port>" -d "<your-database-name>" --authentication-method ActiveDirectoryInteractive -N true -i ".\migration_output\<database_name>\03_indexes.sql"
+```
+
+Notes:
+
+- If `02_foreign_keys.sql` is not generated, skip that step.
+- If you authenticate with Azure CLI instead of interactive login, replace `ActiveDirectoryInteractive` with `ActiveDirectoryAzCli`.
+- Run these commands from the repository root so the relative `migration_output\...` paths resolve correctly.
+
 ## 4. Configure and run backend
 
 Create `api/appsettings.Development.json`:
